@@ -57,24 +57,31 @@ model User {
     /// @Validator.IsString()
     /// @HideField()
     hashedRefreshToken String?
-    createdAt          DateTime       @default(now())
-    updatedAt          DateTime       @updatedAt
+    createdAt          DateTime   @default(now())
+    updatedAt          DateTime   @updatedAt
     //  One to Many: one user has many user books
     userBooks          UserBook[]
     //  One to Many: one user has many shelves
-    shelves            Shelf[]
-    journalEntries     JournalEntry[]
-    following          User[]         @relation("UserFollows")
-    followers          User[]         @relation("UserFollows")
-    // favoriteBooks      Book[]         @relation("FavoritedBooks")
-    reviews            Review[]
-    likedReviews       Review[]       @relation(name: "LikedReviews")
-    comments           Comment[]
-    auditLogs          AuditLog[]
+    followers          Follows[]  @relation("follower")
+    following          Follows[]  @relation("following")
+
     // AUTH
-    image              String?
-    emailVerified      DateTime?
-    accounts           Account[]
+    image         String?
+    emailVerified DateTime?
+    accounts      Account[]
+    reviews       Review[]
+    auditLogs     AuditLog[]
+    shelves       Shelf[]
+}
+
+model Follows {
+    follower   User   @relation("follower", fields: [followerId], references: [id])
+    followerId String
+
+    following   User   @relation("following", fields: [followingId], references: [id])
+    followingId String
+
+    @@id([followerId, followingId])
 }
 
 model Account {
@@ -101,21 +108,21 @@ model Cover {
     url  String
     size SIZE
 
-    bookId     String?
-    book       Book?     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-    UserBook   UserBook? @relation(fields: [userBookId], references: [id], onDelete: Cascade)
-    userBookId String?
+    bookId String?
+    book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model Book {
     /// @Validator.IsString()
-    id            String   @id @default(uuid())
+    id            String      @id @default(uuid())
     /// @Validator.IsString()
-    slug          String   @unique
+    slug          String      @unique
     /// @Validator.IsString()
     title         String
     /// @Validator.IsString()
-    authors       String[]
+    subtitle      String
+    /// @Validator.ValidateNested()
+    authors       Author[]
     /// @Validator.IsString()
     publishedDate String?
     /// @Validator.IsString()
@@ -126,20 +133,34 @@ model Book {
     language      String?
     /// @Validator.IsInt()
     pageCount     Int?
-    /// @Validator.IsString()
-    categories    String[]
-
-    averageRating Float?
-
-    /// @Validator.IsString()
-    identifier Identifier?
-    // One to Many: multiple users can own the same book
     /// @Validator.ValidateNested()
-    userBook   UserBook[]
-    reviews    Review[]
-    logs       AuditLog[]
+    ratings       Rating[]
+    /// @Validator.IsString()
+    identifiers   Identifier?
+    /// @Validator.ValidateNested()
+    actvityLogs   AuditLog[]
+    /// @Validator.ValidateNested()
+    userBook      UserBook[]
+    /// @Validator.ValidateNested()
+    covers        Cover[]
+    reviews       Review[]
+}
 
-    covers Cover[]
+model Author {
+    id    String  @id @default(uuid())
+    name  String
+    bio   String?
+    slug  String?
+    books Book[] //books by the author
+}
+
+model Rating {
+    id        String @id @default(uuid())
+    source    String //'GOODREADS' | 'GOOGLE' | 'AMAZON' | 'OPEN_LIBRARY'
+    maxRating Int
+    rating    Int
+    count     Int
+    Book      Book[]
 }
 
 enum SIZE {
@@ -160,45 +181,39 @@ model Identifier {
 }
 
 model Review {
-    id        String    @id @default(uuid())
-    createdAt DateTime  @default(now())
-    content   String?
-    likeCount Int       @default(0)
-    likedBy   User[]    @relation("LikedReviews")
-    spoilers  Boolean   @default(false)
-    comments  Comment[]
-    user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId    String?
-    book      Book?     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-    bookId    String?
-}
-
-model Comment {
     id        String   @id @default(uuid())
     createdAt DateTime @default(now())
     content   String?
-    user      User?    @relation(fields: [userId], references: [id])
+    tags      String[]
+    /// @Validator.Min(0)
+    /// @Validator.Max(5)
+    /// @Validator.IsNumber()
+    rating    Int?
+    spoilers  Boolean  @default(false)
     userId    String?
-    review    Review?  @relation(fields: [reviewId], references: [id])
-    reviewId  String?
+    user      User?    @relation(fields: [userId], references: [id])
+    Book      Book?    @relation(fields: [bookId], references: [id])
+    bookId    String?
+
+    // each user can only have one review per book
+    @@unique(fields: [userId, bookId])
 }
 
-// Table stores all user books
-//BookshelvesBook
+enum STATUS {
+    WANT_TO_READ
+    CURRENTLY_READING
+    FINISHED
+    DID_NOT_FINISH
+    UP_NEXT
+}
+
 model UserBook {
     /// @Validator.IsString()
-    id String @id @default(uuid())
-
+    id        String   @id @default(uuid())
     /// @Validator.IsString()
     userId    String
     /// @Validator.IsString()
     bookId    String
-    /// @Validator.IsString()
-    status    String //WANT TO READ, READ, READING, DID NOT FINISH, UP NEXT
-    /// @Validator.Min(0)
-    /// @Validator.Max(5)
-    /// @Validator.IsNumber()
-    rating    Float?   @default(0)
     // Many to One: many user books belong to one user when user is deleted all user books are deleted as well
     user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
     // Many to One: many user books belong to one book when book
@@ -207,80 +222,81 @@ model UserBook {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    shelves      UserBookShelves[]
-    // One to Many: one user book has many journal entries
-    journalEntry JournalEntry[]
-    order        Int
-
-    // Editable book details
-    /// @Validator.IsString()
-    title   String?
-    /// @Validator.IsString()
-    authors String?
-    Cover   Cover[]
+    status            String
+    order             Int
+    shelves           UserBookShelves[]
+    readingProgress   ReadingProgress?
+    readingProgressId String
+    readDates         ReadDate[]
 
     /// @Validator.IsString()
     /// @Validator.ValidateNested()
     @@unique(fields: [userId, bookId], name: "identifier")
 }
 
+model ReadingProgress {
+    id         String        @id @default(uuid())
+    /// @Validator.IsInt()
+    capacity   Int
+    /// @Validator.IsInt()
+    progress   Int
+    type       PROGRESS_TYPE
+    createdAt  DateTime      @default(now())
+    userBookId String        @unique
+    userBook   UserBook      @relation(fields: [userBookId], references: [id])
+}
+
+enum PROGRESS_TYPE {
+    PAGES
+    PERCENTAGE
+}
+
+model ReadDate {
+    id           String    @id @default(uuid())
+    startDate    DateTime  @default(now())
+    finishedDate DateTime?
+    userBook     UserBook? @relation(fields: [userBookId], references: [id])
+    userBookId   String?
+}
+
 model UserBookShelves {
     userBook   UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
     userBookId String
-    shelf      Shelf    @relation(fields: [shelfId], references: [id], onDelete: Cascade)
-    shelfId    String
+
+    shelf   Shelf  @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+    shelfId String
 
     @@id([userBookId, shelfId])
 }
 
-model Shelf {
-    /// @Validator.IsString()
-    id        String            @id @default(uuid())
-    /// @Validator.IsString()
-    name      String
-    /// @Validator.IsString()
-    userId    String?
-    dateTime  String?
-    // Many to One: many shelves belong to one user when user is deleted all shelves are deleted as well
-    user      User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-    // Many to Many: a single shelf can be associated with multiple userBooks,
-    userBooks UserBookShelves[]
-
-    /// @Validator.IsString()
-    /// @Validator.ValidateNested()
-    @@unique(fields: [userId, name], name: "identifier")
+enum VISIBILITY {
+    PRIVATE
+    PUBLIC
 }
 
-model JournalEntry {
-    id             String    @id @default(uuid())
+model Shelf {
     /// @Validator.IsString()
-    readingNotes   String?
-    dateRead       DateTime  @default(now())
-    createdAt      DateTime  @default(now())
-    /// @Validator.IsInt()
-    currentPage    Int
-    /// @Validator.IsInt()
-    pagesRead      Int
-    /// @Validator.Min(0)
-    /// @Validator.Max(100)
-    /// @Validator.IsInt()
-    currentPercent Int
+    id          String            @id @default(uuid())
     /// @Validator.IsString()
-    userId         String?
-    user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    name        String
     /// @Validator.IsString()
-    userBookId     String?
-    // Many to One: many journal entries belong to one user book when user book is deleted all journal entries are deleted as well
-    userBook       UserBook? @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+    ownerId     String?
+    /// @Validator.IsString()
+    // Many to One: many shelves belong to one user when user is deleted all shelves are deleted as well
+    owner       User?             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    description String?
+    visibility  VISIBILITY        @default(PUBLIC)
+    // Many to Many: a single shelf can be associated with multiple userBooks,
+    userBooks   UserBookShelves[]
+
+    /// @Validator.ValidateNested()
+    // each user can only have one shelf with the same name
+    @@unique(fields: [ownerId, name])
 }
 
 enum ACTION {
     REVIEW
-    COMMENT
     STATUS_UPDATE
-    LIKE
-    RATE
-    LOG
     SHELVE
 }
 

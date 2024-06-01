@@ -2034,7 +2034,6 @@ type Query {
   journalEntries(book: BookWhereUniqueInput, limit: Int! = 20, offset: Int! = 0): [JournalEntry!]!
   me: MeResponse!
   shelves: [Shelf!]
-  slug(id: String!): String
   user(where: UserWhereUniqueInput!): User!
   userBook(where: BookWhereUniqueInput!): UserBook
 }

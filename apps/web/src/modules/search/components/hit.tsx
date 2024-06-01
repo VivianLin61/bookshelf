@@ -1,52 +1,12 @@
-'use client';
 import { BookCard, BookInfo } from '@/components/ui/book-card';
 import BookCover from '@/components/book-cover';
-import { Button } from '@/components/ui/button';
-import useCreateUserBook from '@/modules/book/mutations/use-create-user-book';
-import { useEffect, useState } from 'react';
-import { useFirstRender } from '@/hooks/use-first-render';
-import { BookRating } from '@/components/rating';
-import BookActions from '@/components/book-actions';
-import { useUserBookLazyQuery } from '@/graphql/graphql';
-import { toast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { BookData } from '@/types/interfaces';
+;
 
 export type HitProps = {
   hit: BookData;
 };
 
 const Hit = ({ hit }: HitProps) => {
-  const [status, setStatus] = useState('');
-  const [rating, setRating] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [openAlert, setOpenAlert] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const router = useRouter();
-  const { createUserBook } = useCreateUserBook();
-//   const [loadBook] = useUserBookLazyQuery({
-//     fetchPolicy: 'cache-and-network',
-//     nextFetchPolicy: 'cache-first',
-//     notifyOnNetworkStatusChange: true,
-//     onError: (error) => {
-//       toast({
-//         title: error.message,
-//         variant: 'destructive',
-//       });
-//     },
-//     onCompleted: (data) => {
-//       setStatus(data.userBook?.status as string);
-//       setRating(data.userBook?.rating as number);
-//     },
-//     errorPolicy: 'all',
-//   });
-//   useEffect(() => {
-//     const loadData = async () => {
-//       await loadBook({ variables: { where: { id: hit.id } } });
-//     };
-//     loadData();
-//   }, []);
   return (
     <BookCard
       book={hit}

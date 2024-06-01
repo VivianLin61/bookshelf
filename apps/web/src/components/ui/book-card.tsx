@@ -119,7 +119,7 @@ export function BookCard({ content, actions, book }: BookCardProps) {
         <Card
           onClick={() => {
             if (linkRef.current) {
-                // callGetOrCreateGoogleBook
+                // getSlug(book.id)
               linkRef.current.click();
             }
           }}

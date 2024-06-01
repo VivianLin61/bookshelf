@@ -2245,7 +2245,6 @@ export type Query = {
   journalEntries: Array<JournalEntry>;
   me: MeResponse;
   shelves?: Maybe<Array<Shelf>>;
-  slug?: Maybe<Scalars['String']['output']>;
   user: User;
   userBook?: Maybe<UserBook>;
 };
@@ -2316,11 +2315,6 @@ export type QueryJournalEntriesArgs = {
   book?: InputMaybe<BookWhereUniqueInput>;
   limit?: Scalars['Int']['input'];
   offset?: Scalars['Int']['input'];
-};
-
-
-export type QuerySlugArgs = {
-  id: Scalars['String']['input'];
 };
 
 

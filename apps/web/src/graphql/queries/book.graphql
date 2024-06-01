@@ -1,3 +1,21 @@
+# query SearchBook($query: String!) {
+#     searchBook(query: $query) {
+#         id
+#         slug
+#         title
+#         authors
+#         covers {
+#             url
+#             size
+#         }
+#         description
+#         publishedDate
+#         publisher
+#         pageCount
+#         categories
+#         averageRating
+#     }
+# }
 query Book($where: BookWhereUniqueInput!) {
   book(where: $where) {
     id
