@@ -21,7 +21,7 @@ import KanbanTemplate from '../components/kanban-template';
 interface BookshelvesTemplateProps {}
 
 export default function BookshelvesTemplate({}: BookshelvesTemplateProps) {
-  const [view, setView] = React.useState<string>('gallery');
+  const [view, setView] = React.useState<string>('list');
 
   let contentView;
   const router = useRouter();

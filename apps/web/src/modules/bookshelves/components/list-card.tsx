@@ -9,6 +9,7 @@ import BookActions from '@/components/book-actions';
 import { Icons } from '@/components/icons';
 import { readingStatuses } from '@/config/books';
 import Rating from '@/components/rating';
+import RatingInfo from '@/modules/book/components/rating-info';
 interface ListCardProps {
   book: Book;
   openAlert: boolean;
@@ -67,12 +68,14 @@ export const ListCard: React.FC<ListCardProps> = ({
               {rating ? (
                 <>
                   <Rating value={rating} />
-                  <span className='mx-1 text-[6px] font-normal text-beige'>
-                    •
-                  </span>
                 </>
               ) : (
-                <div></div>
+                <div>
+                  <RatingInfo size={'sm'} ratings={book?.ratings || []} />
+                  {/* <span className='mx-1 text-[6px] font-normal text-beige'>
+                    •
+                  </span> */}
+                </div>
               )}
               {/* <span className='text-xs font-normal text-beige'>
                 Finished 20 April 2024

@@ -33,6 +33,10 @@ function importLibraryReducer(
   }
 }
 
+interface MultiStepComponentProps {
+  setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 // Create a context for the file upload state and dispatch function
 export const ImportLibraryContext = React.createContext<
   | {
@@ -42,7 +46,9 @@ export const ImportLibraryContext = React.createContext<
   | undefined
 >(undefined);
 
-export default function MultiStepComponent() {
+export const MultiStepComponent: React.FC<MultiStepComponentProps> = ({
+  setOpenDialog,
+}) => {
   const [currentStep, setCurrentStep] = React.useState(0);
   const [direction, setDirection] = React.useState<number>();
   const [ref, bounds] = useMeasure();
@@ -69,7 +75,11 @@ export default function MultiStepComponent() {
         );
       case 1:
         return (
-          <Step2 setCurrentStep={setCurrentStep} setDirection={setDirection} />
+          <Step2
+            setOpenDialog={setOpenDialog}
+            setCurrentStep={setCurrentStep}
+            setDirection={setDirection}
+          />
         );
     }
   }, [currentStep]);
@@ -106,7 +116,7 @@ export default function MultiStepComponent() {
       </MotionConfig>
     </ImportLibraryContext.Provider>
   );
-}
+};
 
 const variants = {
   initial: (direction: number) => {

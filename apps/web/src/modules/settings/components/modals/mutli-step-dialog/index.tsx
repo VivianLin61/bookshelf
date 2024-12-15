@@ -7,7 +7,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import MultiStepComponent from './multi-step-component';
+import { MultiStepComponent } from './multi-step-component';
 import { useSession } from 'next-auth/react';
 import { toast } from '@/hooks/use-toast';
 
@@ -43,7 +43,7 @@ export const MultiStepDialog: React.FC<MultiStepDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Import goodreads library</DialogTitle>
         </DialogHeader>
-        <MultiStepComponent />
+        <MultiStepComponent setOpenDialog={setOpen} />
       </DialogContent>
     </Dialog>
   );
