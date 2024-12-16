@@ -29,7 +29,10 @@ export const MainBookList = ({
             const { book } = userBook;
             return (
               <>
-                <Link href={`/book/${book?.slug}`}>
+                <Link
+                  //   className='rounded-md border border-gray-700'
+                  href={`/book/${book?.slug}`}
+                >
                   <div className='w-full'>
                     <Image
                       src={
@@ -40,7 +43,7 @@ export const MainBookList = ({
                       width={0}
                       height={0}
                       sizes='100vw'
-                      className='h-auto w-full'
+                      className='h-auto w-full rounded-md shadow-sm'
                     />
                   </div>
                 </Link>
